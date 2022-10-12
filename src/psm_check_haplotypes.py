@@ -38,8 +38,8 @@ psm_count = len(psm_df)
 print ("Reading", args.haplo_db)
 haplo_df = pd.read_csv(args.haplo_db, header=0)
 
-summary_data = []
-summary_columns = ['PSMId', 'PeptideType', 'CoveredSNPs', 'Haplotypes', 'HaplotypeFreqs', 'OtherMatches']
+annotation_data = []
+annotation_columns = ['PSMId', 'PeptideType', 'CoveredSNPs', 'Haplotypes', 'HaplotypeFreqs', 'OtherMatches']
 
 print ("Annotating PSMs:")
 
@@ -49,7 +49,7 @@ def check_stop(fastaID, pos_from, pos_to):
     desc = all_proteins[fastaID.split('.')[0]]['description']
 
     if 'stop:' not in desc:
-        return False
+        return False, pos_from
 
     stop_positions = sorted([ int(sp) for sp in desc.split('stop:',1)[1].split('.') ])
 
@@ -58,11 +58,11 @@ def check_stop(fastaID, pos_from, pos_to):
             pos_from += 1
             pos_to += 1
         elif sp < pos_to:   # stop is in the region
-            return True
+            return True, pos_from
         else:
             break
 
-    return False
+    return False, pos_from
 
 def process_row(index):
     row = psm_df.iloc[index]
@@ -90,10 +90,12 @@ def process_row(index):
     is_contaminant = not all(list(map(lambda x: x.startswith('enshap') or x.startswith('ensvar') or x.startswith('ENSP'), protein_accessions)))
 
     # filter out matches that include a stop codon
+    # adjust the peptide starts so that any preceding stop codons are taken into account
     have_stop = []
     for i,fastaID in enumerate(protein_accessions):
-        has_stop = check_stop(fastaID, peptide_starts[i], peptide_starts[i] + peptide_length)
+        has_stop, adjusted_start = check_stop(fastaID, peptide_starts[i], peptide_starts[i] + peptide_length)
         have_stop.append(has_stop)
+        peptide_starts[i] = adjusted_start
 
     peptide_starts = [ peptide_starts[i] for i,has_stop in enumerate(have_stop) if not has_stop ]
     protein_accessions = [ protein_accessions[i] for i,has_stop in enumerate(have_stop) if not has_stop ]
@@ -217,30 +219,19 @@ def process_row(index):
 # read PSMs line by line, check whether any peptide is haplotype- or variant-specific
 # for index, row in psm_df.iterrows():
 with Pool(args.threads) as pool:
-    summary_data = list(tqdm(pool.imap_unordered(process_row, range(0, len(psm_df))), total=len(psm_df)))
+    annotation_data = list(tqdm(pool.imap_unordered(process_row, range(0, len(psm_df))), total=len(psm_df)))
     pool.close()
     pool.join()
 
 # there will be some empty rows - filter them out
-summary_data = [ row for row in summary_data if len(row) > 0]
+annotation_data = [ row for row in annotation_data if len(row) > 0]
 
 print ('Done')
 #psm_df.to_csv("tonsil_trypsin_PSM_report_checked.txt", sep='\t', header=True, index=False)
 
-summary_df = pd.DataFrame(data=summary_data, columns=summary_columns)
+annotation_df = pd.DataFrame(data=annotation_data, columns=annotation_columns)
+result_df = pd.merge(psm_df, annotation_df, on='PSMId', suffixes=('', '_duplicate'))
 #summary_df.sort_values(by=['Peptide'], inplace=True)
 
 print ('Writing results to', args.output_file)
-summary_df.to_csv(args.output_file, sep='\t', header=True, index=False)
-
-'''
-print ('Filtering out canonical PSMs')
-filtered_file = ".".join(args.output_file.split('.')[:-1]) + '_filtered.txt'
-
-# we need not just the variant/haplotype PSMs, but all the PSMs of these spectra
-filtered_ids = summary_df[summary_df['Other matches'] == '-']['SpectrumID']
-filtered_df = summary_df[summary_df['SpectrumID'].isin(filtered_ids)]
-
-print ('Writing only variant and haplotypic PSMs to', filtered_file)
-filtered_df.to_csv(filtered_file, sep='\t', header=True, index=False)
-'''
+result_df.to_csv(args.output_file, sep='\t', header=True, index=False)
