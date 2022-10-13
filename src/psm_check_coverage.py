@@ -32,10 +32,6 @@ for index, row in psm_df.iterrows():
     peptide_length = len(row['Sequence'])                 # length of the peptide sequence
     peptide_starts = list(map(lambda x: int(x), row['Position'].replace(',', ';').split(';')))    # positions of the peptide within respective candidate protein
 
-    is_contaminant = not all(list(map(lambda x: x.startswith('enshap') or x.startswith('ensvar') or x.startswith('ENSP'), protein_accessions)))
-    if is_contaminant:
-        continue
-
     for prot_idx, acc in enumerate(protein_accessions):
         protein_id = '-'
         protein_haplotype = acc

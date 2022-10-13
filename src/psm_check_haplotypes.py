@@ -39,7 +39,16 @@ print ("Reading", args.haplo_db)
 haplo_df = pd.read_csv(args.haplo_db, header=0)
 
 annotation_data = []
-annotation_columns = ['PSMId', 'PeptideType', 'CoveredSNPs', 'Haplotypes', 'HaplotypeFreqs', 'OtherMatches']
+annotation_columns = [
+        'PSMId', 
+        'Proteins',     
+        'Position',     # Replace the positions of peptides within proteins taking into account possible preceding stop codons, which have been removed in the search database, but need to be included in the post-processing step to correctly align sequences
+        'PeptideType', 
+        'CoveredSNPs', 
+        'Haplotypes', 
+        'HaplotypeFreqs', 
+        'OtherMatches'
+        ]
 
 print ("Annotating PSMs:")
 
@@ -213,7 +222,7 @@ def process_row(index):
         other_proteins = ['-']
 
     #print(str(index) + ' / ' + str(psm_count), end='\r')
-    return [row['PSMId'], pep_type, ';'.join(SNPs), ';'.join(protein_haplotypes), ';'.join(haplotype_frequencies), ';'.join(other_proteins)]
+    return [row['PSMId'], ';'.join(protein_accessions), ';'.join([ str(pos) for pos in peptide_starts ]), pep_type, ';'.join(SNPs), ';'.join(protein_haplotypes), ';'.join(haplotype_frequencies), ';'.join(other_proteins)]
     
 
 # read PSMs line by line, check whether any peptide is haplotype- or variant-specific
@@ -230,7 +239,7 @@ print ('Done')
 #psm_df.to_csv("tonsil_trypsin_PSM_report_checked.txt", sep='\t', header=True, index=False)
 
 annotation_df = pd.DataFrame(data=annotation_data, columns=annotation_columns)
-result_df = pd.merge(psm_df, annotation_df, on='PSMId', suffixes=('', '_duplicate'))
+result_df = pd.merge(psm_df.drop(['Proteins', 'Position'], axis=1), annotation_df, on='PSMId', suffixes=('', '_duplicate'))
 #summary_df.sort_values(by=['Peptide'], inplace=True)
 
 print ('Writing results to', args.output_file)
