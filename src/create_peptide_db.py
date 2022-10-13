@@ -82,8 +82,6 @@ all_protein_ids = list(all_proteins.keys())
 def process_protein(idx):
     proteinID = all_protein_ids[idx]
     sequence = all_proteins[proteinID]['sequence']
-    if ('*' in sequence and len(sequence) > 20):
-        print()
     peptides, peptide_positions = digest(sequence, args.missed_cl, 8, 40)
     result = []
 
