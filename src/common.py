@@ -190,3 +190,43 @@ def digest(seq, missed_c, min_length, max_length):
             final_positions.append(positions[i])
 
     return final_peptides, final_positions
+
+# given a sorted list of peptides in a protein, get coverage by a sweep-line approach
+def get_protein_coverage(data):
+    regions = []
+    current_pos = 0
+    region_start = 0
+    current_type = -1
+
+    active_regions = []
+    eventQ = []
+
+    for idx, pep in enumerate(data):
+        eventQ.append({ 'pos': pep[0], 'event': 'start', 'type': pep[2], 'pep_idx': idx })
+        eventQ.append({ 'pos': pep[0] + pep[1], 'event': 'end', 'type': pep[2], 'pep_idx': idx })
+
+    eventQ = sorted(eventQ, key=lambda x: x['pos'])
+
+    for evt in eventQ:
+        current_pos = evt['pos']
+
+        if evt['event'] == 'start':
+            if evt['type'] > current_type:
+                if current_pos > region_start:
+                    regions.append([region_start, current_pos, current_type])
+                current_type = evt['type']
+                region_start = current_pos
+            active_regions.append([evt['pep_idx'], evt['type']])
+
+        if evt['event'] == 'end':
+            active_regions = list(filter(lambda x: x[0] != evt['pep_idx'], active_regions))
+            new_type = -1
+            if (len(active_regions) > 0):
+                new_type = max(list(map(lambda x: x[1], active_regions)))
+            if (new_type < current_type):
+                if current_pos > region_start:
+                    regions.append([region_start, current_pos, current_type])
+                region_start = current_pos
+                current_type = new_type
+
+    return regions

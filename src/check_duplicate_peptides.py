@@ -27,6 +27,28 @@ def group_rows(df):
     df['max_linked_SNPs'] = max([ max([ int(y) for y in x.split(',') if y.isdigit() ]) for x in df['possible_linked_SNPs'].tolist() ])
     df['possible_linked_SNPs'] = ';'.join([ str(max([ int(y) for y in x.split(',') ])) for x in df['possible_linked_SNPs'].tolist() ])
 
+    # aggregate the peptide type
+    type_aggregated = ""
+    if 'canonical' in df['type_aggregated'].tolist():
+        type_aggregated = "canonical"
+    elif 'single_variant' in df['type_aggregated'].tolist():
+        type_aggregated = "single_variant"
+    elif 'multi_variant' in df['type_aggregated'].tolist():
+        type_aggregated = 'multi_variant'
+
+    df['type_aggregated'] = type_aggregated
+
+    # store the peptide category
+    category = ""
+    if ';' in df['GeneID']:
+        category = 'non_specific'
+    elif ',' in df['ProteinID']:
+        category = 'protein_specific'
+    else:
+        category = 'proteoform_specific'
+    
+    df['category'] = category
+
     return df
 
 g = peptides_df.groupby(['Sequence']).apply(group_rows)
@@ -34,6 +56,8 @@ peptides_df['GeneID'] = g['GeneID']
 peptides_df['ProteinID'] = g['ProteinID']
 peptides_df['Position'] = g['Position']
 peptides_df['type'] = g['type']
+peptides_df['type_aggregated'] = g['type_aggregated']
+peptides_df['category'] = g['category']
 peptides_df['SNPs'] = g['SNPs']
 peptides_df['matches_contaminant'] = g['matches_contaminant']
 peptides_df['possible_linked_SNPs'] = g['possible_linked_SNPs']

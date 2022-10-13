@@ -172,13 +172,13 @@ def process_protein(idx):
         pep_info = [pep, geneID, proteinID, pos, max(possible_snp_count), (is_contaminant or (pep in contaminant_peptides))]
 
         if (len(found_changes) == 1):
-            pep_info.append('variant')
+            pep_info.append('single_variant')
             pep_info.append(refID + ':' + found_changes[0])
         elif (len(found_changes) > 1):
-            pep_info.append('haplotype')
+            pep_info.append('multi_variant')
             pep_info.append(refID + ':' + ','.join(found_changes))
         else:
-            pep_info.append('reference')
+            pep_info.append('canonical')
             pep_info.append('-')
 
         result.append(pep_info)
@@ -212,6 +212,18 @@ def group_rows(df):
     df['matches_contaminant'] = any(df['matches_contaminant'].tolist())
     df['type'] = ','.join(df['type'].tolist())
     df['SNPs'] = '|'.join(df['SNPs'].tolist())
+
+    # aggregate the peptide type
+    type_aggregated = ""
+    if 'canonical' in df['type'].tolist():
+        type_aggregated = "canonical"
+    elif 'single_variant' in df['type'].tolist():
+        type_aggregated = "single_variant"
+    elif 'multi_variant' in df['type'].tolist():
+        type_aggregated = 'multi_variant'
+
+    df['type_aggregated'] = type_aggregated
+
     return df
 
 print ("Grouping by peptide and gene.")
@@ -220,6 +232,7 @@ g = peptides_df.groupby(['Sequence', 'GeneID']).apply(group_rows)
 peptides_df['ProteinID'] = g['ProteinID']
 peptides_df['Position'] = g['Position']
 peptides_df['type'] = g['type']
+peptides_df['type_aggregated'] = g['type_aggregated']
 peptides_df['SNPs'] = g['SNPs']
 peptides_df['possible_linked_SNPs'] = g['possible_linked_SNPs']
 peptides_df['matches_contaminant'] = g['matches_contaminant']
