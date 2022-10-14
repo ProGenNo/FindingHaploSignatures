@@ -22,10 +22,10 @@ parser.add_argument("-o", dest="output_file", required=True,
 
 args = parser.parse_args()
 
-print ('Reading', args.fasta_file)
+#print ('Reading', args.fasta_file)
 name_dict, all_proteins = get_protein_name_dict(args.fasta_file)
 
-print ('Reading', args.input_file)
+#print ('Reading', args.input_file)
 pep_df = pd.read_csv(args.input_file, sep='\t', header=0)
 
 result_columns = ['ProteinID', 'coverage']
@@ -70,11 +70,11 @@ def process_gene(idx):
 
             pep_type = row['category']
             encoded_type = -1
-            if pep_type == 'non-unique':
+            if pep_type == 'non_unique':
                 encoded_type = 0
-            elif pep_type == 'protein-specific':
+            elif pep_type == 'protein_specific':
                 encoded_type = 1
-            elif pep_type == 'proteoform-specific':
+            elif pep_type == 'proteoform_pecific':
                 encoded_type = 2
 
             pep_pos = int(row['Position'].split(',')[i])

@@ -95,7 +95,7 @@ def process_gene(geneID):
             protein_name = name_dict[proteinID]
             ref_stable_id = protein_name.split(':')[0]
 
-            pep_type = row['type'].split(',')[i]
+            pep_type = row['type_aggregated'].split(',')[i]
             encoded_type = -1
             if pep_type == 'canonical':
                 encoded_type = 0
@@ -119,7 +119,7 @@ def process_gene(geneID):
                 protein_peptides[ref_stable_id] = { 'peptides': [ [pep_pos, pep_length, encoded_type] ], 'var_covered': {'single_variant': [], 'multi_variant': []}  }
 
             # remember the variants found by peptide type
-            if pep_type == 'haplotype':
+            if pep_type == 'multi_variant':
                 for SNP in SNPs:
                     if SNP not in protein_peptides[ref_stable_id]['var_covered']['multi_variant']:
                         protein_peptides[ref_stable_id]['var_covered']['multi_variant'].append(SNP)
