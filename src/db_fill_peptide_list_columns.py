@@ -27,7 +27,7 @@ unique_list.set_index('Sequence', inplace=True)
 
 def get_category_contaminant(seq):
     sequence_row = unique_list.loc[seq]
-    return [ sequence_row['category'], sequence_row['matches_contaminant'] ]
+    return [ sequence_row['category'], sequence_row['matches_contaminant'], sequence_row['type_aggregated'] ]
 
 def process_row(i):
     row = list_by_protein.iloc[i]
@@ -41,8 +41,10 @@ with Pool(args.threads) as p:
 
     categories = [ elem[0] for elem in all_results ]
     is_contam = [ elem[1] for elem in all_results ]
+    type_agg = [ elem[2] for elem in all_results ]
 
     list_by_protein['category'] = categories
     list_by_protein['matches_contaminant'] = is_contam
+    list_by_protein['type_aggregated'] = type_agg
 
     list_by_protein.to_csv(args.output_file, sep='\t', header=True, index=False)
