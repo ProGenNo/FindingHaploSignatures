@@ -9,7 +9,10 @@ rule all:
         psm2="results/PEP_violinplot.pdf",
         psm3="results/q-val_violinplot.pdf",
         psm4="results/ang_simil_violinplot.pdf",
-        psm5="results/RT_diff_violinplot.pdf"
+        psm5="results/RT_diff_violinplot.pdf",
+        psm6="results/PSMs_multivar_observed_predicted.txt",
+        psm7="results/PSM_identified_variants.tsv",
+        psm8="results/PSMs_gene_IDs.tsv"
 
 rule create_peptide_db:
     input:
@@ -178,6 +181,18 @@ rule psm_get_identified_variants:
         "results/PSM_identified_variants.tsv"
     shell:
         "python src/psm_identified_variants.py -i {input} -o {output}"
+
+rule psm_get_observed_predicted_spectra:
+    input:
+        "results/PSM_reports_annotated_1FDR.txt"
+    output:
+        "results/PSMs_multivar_observed_predicted.txt"
+    params:
+        mzml_dir=config['mzml_dir'],
+        predictions_dir=config['predictions_dir'],
+        pep_type='multi-variant'
+    shell:
+        "python3 src/psm_get_observed_predicted_list.py -i {input} -m {params.mzml_dir} -p {params.predictions_dir} -type {params.pep_type} -o {output}"
 
 rule psm_make_violinplots:
     input:
