@@ -70,7 +70,7 @@ def process_gene(idx):
 
             pep_type = row['category']
             encoded_type = -1
-            if pep_type == 'non_unique':
+            if pep_type == 'non_specific':
                 encoded_type = 0
             elif pep_type == 'protein_specific':
                 encoded_type = 1

@@ -65,7 +65,7 @@ violin_parts['cmaxes'].set_color('grey')
 
 axes.set_title(args.figure_title)
 
-x_ticks = [ peptype + '\n#PSMs = ' + str(n_samples[i]) for i,peptype in enumerate(uniq_types) ]
+x_ticks = [ peptype + '\n#PSMs = {:,.0f}'.format(n_samples[i]) for i,peptype in enumerate(uniq_types) ]
 
 axes.set_ylabel(args.y_label)
 axes.set_xticks([i+1 for i in range(len(uniq_types))])
