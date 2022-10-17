@@ -4,7 +4,7 @@ rule all:
     input:
         db1="results/VariantDiscoverabilityList.tsv",
         db2="results/PeptideCoverageText.tsv",
-        db3="results/PeptideCoverageCategories.tsv",
+        db3="results/PeptideCoverageCategoriesText.txt",
         psm1="results/PSM_protein_coverage_stats.tsv",
         psm2="results/PEP_violinplot.pdf",
         psm3="results/q-val_violinplot.pdf",
@@ -27,9 +27,10 @@ rule db_aggregate_dupliate_peptides:
 	input:
 		"results/PeptideList.tsv"
 	output:
-		"results/PeptideListUniq.tsv"
+		all="results/PeptideListUniq.tsv",
+		variant="results/VariantPeptides.tsv"
 	shell:
-		"python3 src/check_duplicate_peptides.py -i {input} -o {output}"
+		"python3 src/check_duplicate_peptides.py -i {input} -o {output.all} -var {output.variant}"
 
 rule db_fill_missing_columns:
     input:
@@ -38,7 +39,7 @@ rule db_fill_missing_columns:
     output:
         "results/PeptideListComplete.tsv"
     params:
-        max_cores=config['max_cores'] / 2
+        max_cores=int(config['max_cores'] / 2)
     threads: config['max_cores'] / 2
     shell:
         "python3 src/db_fill_peptide_list_columns.py -uniq {input.uniq} -nonuniq {input.by_prot} -t {params.max_cores} -o {output}"
@@ -49,7 +50,7 @@ rule filter_fasta_stop:
     output:
         config['proteindb_fasta_stop_filtered']
     shell:
-        "grep -A1 \"generic_ensref\" {input} > output; grep -A1 \"generic_enshap\" {input} >> {output}"
+        "grep -A1 \"generic_ensref\" {input} > {output}; grep -A1 \"generic_enshap\" {input} >> {output}"
 
 rule db_get_coverage_stats:
     input:
@@ -58,7 +59,7 @@ rule db_get_coverage_stats:
     output:
         "results/PeptideCoverageStats.tsv"
     params:
-        max_cores=config['max_cores'] / 2
+        max_cores=int(config['max_cores'] / 2)
     threads: config['max_cores'] / 2
     shell:
         "python3 src/get_peptide_stats_parallel.py -i {input.pl} -f {input.fasta}  -t {params.max_cores} -o {output} "    
@@ -68,12 +69,13 @@ rule db_get_coverage_categories:
         pl="results/PeptideListComplete.tsv",
         fasta=config['proteindb_fasta_stop_filtered']
     output:
-        "results/PeptideCoverageCategories.tsv"
+        stats="results/PeptideCoverageCategories.tsv",
+        text="results/PeptideCoverageCategoriesText.txt"
     params:
-        max_cores=config['max_cores'] / 2
+        max_cores=int(config['max_cores'] / 2)
     threads: config['max_cores'] / 2
     shell:
-        "python3 src/get_peptide_stats_categories.py -i {input.pl} -f {input.fasta}  -t {params.max_cores} -o {output} "  
+        "python3 src/get_peptide_stats_categories.py -i {input.pl} -f {input.fasta}  -t {params.max_cores} -o {output.stats} > {output.text} "  
 
 rule db_store_coverage_stats_text:
     input:
@@ -84,14 +86,6 @@ rule db_store_coverage_stats_text:
     shell:
         "python3 src/get_peptide_stats_precomputed.py -i {input.stats} -f {input.fasta} > {output}"
 
-rule db_get_multivar_peptides:
-	input:
-		"results/PeptideListUniq.tsv"
-	output:
-		"results/VariantPeptides.tsv"
-	shell:
-		"head -1 {input} > {output} ; grep \"variant\" {input} | grep -v \"reference\" >> {output}"
-
 rule db_get_haplotype_freq:
     input:
         in1="results/VariantPeptides.tsv",
@@ -99,7 +93,7 @@ rule db_get_haplotype_freq:
     output:
         "results/VariantPeptidesFreq.tsv"
     params:
-        max_cores=config['max_cores'] / 2
+        max_cores=int(config['max_cores'] / 2)
     threads: config['max_cores'] / 2
     shell:
         "python3 src/add_haplotype_frequency.py -i {input.in1} -hap {input.in2} -t {params.max_cores} -o {output}"
@@ -125,7 +119,7 @@ rule psm_annotate_variation:
         max_cores=config['max_cores']
     threads: config['max_cores']
     shell:
-        "python3 src/psm_check_haplotypes.py -i {input.in1} -f {input.in2} -hap {input.in3} -s all -t {params.max_cores} -o {output.out1}"
+        "python3 src/psm_check_haplotypes.py -i {input.in1} -f {input.in2} -hap {input.in3} -s all -t {params.max_cores} -o {output}"
 
 rule psm_threshold_FDR:
     input:
@@ -160,7 +154,7 @@ rule psm_protein_coverage_stats:
     output:
         "results/PSM_protein_coverage_stats.tsv"
     shell:
-        "python3 src/psm_get_coverage_stats.py -pep {input.pep} -psm {input.psm} -f {input.fasta} -o {output} "
+        "python3 src/psm_get_coverage_stats.py -pep {input.pep} -psm {input.psm} -f {input.fasta} > {output} "
 
 rule psm_make_violinplots:
     input:
