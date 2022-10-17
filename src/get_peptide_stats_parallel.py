@@ -95,7 +95,11 @@ def process_gene(geneID):
             protein_name = name_dict[proteinID]
             ref_stable_id = protein_name.split(':')[0]
 
-            pep_type = row['type_aggregated'].split(',')[i]
+            pep_type = row['type'].split(',')[i]
+            pep_type_global = row['type_aggregated']
+            if pep_type_global != pep_type:
+                continue
+
             encoded_type = -1
             if pep_type == 'canonical':
                 encoded_type = 0

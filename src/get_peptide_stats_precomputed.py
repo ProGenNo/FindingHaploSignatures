@@ -29,9 +29,9 @@ for index, row in pep_df.iterrows():
         region_type = region[2] + 1
         total_aa[region_type] += region_len
 
-    total_var[0] += int(row['SNP stats'].split('single_variant:')[1].split(',')[0])
-    total_var[1] += int(row['SNP stats'].split('multi_variant:')[1].split(',')[0])
-    total_var[2] += int(row['SNP stats'].split('both:')[1].split(',')[0])
+    total_var[0] += int(row['SNP_stats'].split('single_variant:')[1].split(',')[0])
+    total_var[1] += int(row['SNP_stats'].split('multi_variant:')[1].split(',')[0])
+    total_var[2] += int(row['SNP_stats'].split('both:')[1].split(',')[0])
 
 
 total_aa_sum = 0
