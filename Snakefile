@@ -162,6 +162,23 @@ rule psm_protein_coverage_stats:
     shell:
         "python3 src/psm_get_coverage_stats.py -pep {input.pep} -psm {input.psm} -f {input.fasta} -o {output} "
 
+rule psm_assign_gene_id:
+    input:
+        psm="results/PSM_reports_annotated_1FDR.txt",
+        fasta=config['proteindb_fasta_stop_filtered']
+    output:
+        "results/PSMs_gene_IDs.tsv"
+    shell:
+        "python src/psm_check_multigene.py -i {input.psm} -f {input.fasta} -o {output}"
+
+rule psm_get_identified_variants:
+    input:
+        "results/PSM_reports_annotated_1FDR.txt"
+    output:
+        "results/PSM_identified_variants.tsv"
+    shell:
+        "python src/psm_identified_variants.py -i {input} -o {output}"
+
 rule psm_make_violinplots:
     input:
         "results/PSM_reports_annotated.txt"
