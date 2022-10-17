@@ -21,6 +21,7 @@ result_columns = ['ProteinVariant', 'Peptide', 'PeptideType', 'PSMId']
 # store each found variant in each peptide as a separate entry, aggregate later
 for index, row in psm_df.iterrows():
     coveredSNPs = row['CoveredSNPs'].split(';')
+    peptide_type_global = row['PeptideType']
     for entry in coveredSNPs:
         if entry is '-':
             continue
@@ -36,6 +37,9 @@ for index, row in psm_df.iterrows():
         else:
             print ('PSMID:', row['PSMId'], "no SNPs found in protein", protein_stable_id, entry)
 
+        if (peptide_type != peptide_type_global):
+            print ('PSMID:', row['PSMId'], "peptide downgraded -> SNPs not considered", protein_stable_id)
+            continue
 
         for SNP in SNPs:
             result_data.append([protein_stable_id + ':' + SNP, row['Peptide'], peptide_type, row['PSMId']])
