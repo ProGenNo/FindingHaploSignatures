@@ -34,11 +34,16 @@ for i in range(len(pep_df)):
 	else:
 		continue
 
+	pep_type_global = row['type_aggregated']
+
 	for i,SNPlist in enumerate(row['SNPs'].split(';')):
 		typelist = row['type'].split(';')[i].split(',')
 
 		for j,SNPgroup in enumerate(SNPlist.split('|')):
 			pep_type = typelist[j]
+			if (pep_type != pep_type_global):
+				continue
+
 			refID = SNPgroup.split(':', 1)[0]
 
 			for SNP in SNPgroup.split(':', 1)[1].split(','):
