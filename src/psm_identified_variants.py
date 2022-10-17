@@ -38,7 +38,7 @@ for index, row in psm_df.iterrows():
             print ('PSMID:', row['PSMId'], "no SNPs found in protein", protein_stable_id, entry)
 
         if (peptide_type != peptide_type_global):
-            print ('PSMID:', row['PSMId'], "peptide downgraded -> SNPs not considered", protein_stable_id)
+            print ('PSMID:', row['PSMId'], "peptide downgraded -> SNPs not considered")
             continue
 
         for SNP in SNPs:

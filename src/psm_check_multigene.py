@@ -17,7 +17,8 @@ parser.add_argument("-o", dest="output_file", required=True,
 args = parser.parse_args()
 
 print ('Reading', args.input_file)
-pep_df = pd.read_csv(args.input_file, sep='\t', header=0)
+psm_df = pd.read_csv(args.input_file, sep='\t', header=0)
+psm_df = psm_df[(psm_df['PeptideType'] != 'decoy') & (psm_df['PeptideType'] != 'contaminant') & (psm_df['PeptideType'] != 'has_stop')]
 
 print ('Reading', args.fasta_file)
 name_dict, all_proteins = get_protein_name_dict(args.fasta_file)
@@ -46,6 +47,6 @@ def get_genes(proteins):
 
 	return ';'.join(gene_list)
 
-pep_df['matching_genes'] = pep_df['Proteins'].apply(get_genes)
+psm_df['matching_genes'] = psm_df['Proteins'].apply(get_genes)
 
-pep_df[['PSMId', 'Sequence', 'matching_genes']].to_csv(args.output_file, sep='\t', header=True, index=False)
+psm_df[['PSMId', 'Sequence', 'matching_genes']].to_csv(args.output_file, sep='\t', header=True, index=False)
