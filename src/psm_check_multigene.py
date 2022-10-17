@@ -23,6 +23,9 @@ print ('Reading', args.fasta_file)
 name_dict, all_proteins = get_protein_name_dict(args.fasta_file)
 
 def get_genes(proteins):
+	if (proteins != proteins):
+		return "-"
+
 	protein_list = proteins.split(';')
 
 	is_contaminant = not all([ (prot.startswith('ENSP') or prot.startswith('enshap')) for prot in protein_list ])
