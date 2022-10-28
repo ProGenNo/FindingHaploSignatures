@@ -1,0 +1,14 @@
+channels:
+  - bioconda
+  - conda-forge
+  - anaconda
+dependencies:
+  - python=3.9
+  - numpy
+  - spectrum_utils
+  - pyteomics
+  - pip
+  - pip:
+    - pandas
+    - argparse
+    - tqdm

@@ -14,15 +14,25 @@ rule all:
         psm7="results/PSM_identified_variants.tsv",
         psm8="results/PSMs_gene_IDs.tsv"
 
+rule fill_stop_codons:
+    input:
+        config['proteindb_fasta']
+    output:
+        config['proteindb_fasta_stop']
+    conda: "envs/main_env.yaml"
+    shell:
+        "python3 src/fill-stop-codons.py -i {input} -o {output}"
+
 rule create_peptide_db:
     input:
         fasta=config['proteindb_fasta_stop'],
-        subst_list="data/substitutions_list5.tsv"
+        subst_list="substitutions_list.tsv"
     output:
         "results/PeptideList.tsv"
     params:
         max_cores=config['max_cores']
     threads: config['max_cores']
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -o {output}"
 
@@ -32,6 +42,7 @@ rule db_aggregate_dupliate_peptides:
 	output:
 		all="results/PeptideListUniq.tsv",
 		variant="results/VariantPeptides.tsv"
+	conda: "envs/main_env.yaml"
 	shell:
 		"python3 src/check_duplicate_peptides.py -i {input} -o {output.all} -var {output.variant}"
 
@@ -44,6 +55,7 @@ rule db_fill_missing_columns:
     params:
         max_cores=int(config['max_cores'] / 2)
     threads: config['max_cores'] / 2
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/db_fill_peptide_list_columns.py -uniq {input.uniq} -nonuniq {input.by_prot} -t {params.max_cores} -o {output}"
 
@@ -52,6 +64,7 @@ rule filter_fasta_stop:
         config['proteindb_fasta_stop']
     output:
         config['proteindb_fasta_stop_filtered']
+    conda: "envs/main_env.yaml"
     shell:
         "grep -A1 \"generic_ensref\" {input} > {output}; grep -A1 \"generic_enshap\" {input} >> {output}"
 
@@ -64,6 +77,7 @@ rule db_get_coverage_stats:
     params:
         max_cores=int(config['max_cores'] / 2)
     threads: config['max_cores'] / 2
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/get_peptide_stats_parallel.py -i {input.pl} -f {input.fasta}  -t {params.max_cores} -o {output} "    
 
@@ -77,6 +91,7 @@ rule db_get_coverage_categories:
     params:
         max_cores=int(config['max_cores'] / 2)
     threads: config['max_cores'] / 2
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/get_peptide_stats_categories.py -i {input.pl} -f {input.fasta}  -t {params.max_cores} -o {output.stats} > {output.text} "  
 
@@ -86,6 +101,7 @@ rule db_store_coverage_stats_text:
         fasta=config['proteindb_fasta_stop_filtered']
     output:
         "results/PeptideCoverageText.tsv"
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/get_peptide_stats_precomputed.py -i {input.stats} -f {input.fasta} > {output}"
 
@@ -98,6 +114,7 @@ rule db_get_haplotype_freq:
     params:
         max_cores=int(config['max_cores'] / 2)
     threads: config['max_cores'] / 2
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/add_haplotype_frequency.py -i {input.in1} -hap {input.in2} -t {params.max_cores} -o {output}"
 
@@ -106,6 +123,7 @@ rule db_get_snp_discoverability:
         "results/VariantPeptidesFreq.tsv"
     output:
         "results/VariantDiscoverabilityList.tsv"
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/create_SNP_discoverability_list.py -i {input} -o {output}"
 
@@ -121,6 +139,7 @@ rule psm_annotate_variation:
     params:
         max_cores=config['max_cores']
     threads: config['max_cores']
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/psm_check_haplotypes.py -i {input.in1} -f {input.in2} -hap {input.in3} -s all -t {params.max_cores} -o {output}"
 
@@ -129,6 +148,7 @@ rule psm_threshold_FDR:
         "results/PSM_reports_annotated.txt"
     output:
         "results/PSM_reports_annotated_1FDR.txt"
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/psm_threshold.py -i {input} -thr_field q-value -thr_value 0.01 -o {output} "
 
@@ -137,6 +157,7 @@ rule filter_fasta:
         config['proteindb_fasta']
     output:
         config['proteindb_fasta_filtered']
+    conda: "envs/main_env.yaml"
     shell:
         "grep -A1 \"generic_ensref\" {input} > output; grep -A1 \"generic_enshap\" {input} >> {output}"
 
@@ -146,6 +167,7 @@ rule psm_protein_coverage_report:
         in2=config['proteindb_fasta_stop_filtered']
     output:
         "results/PSM_protein_coverage_report.tsv"
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/psm_check_coverage.py -i {input.in1} -f {input.in2} -o {output}"
 
@@ -156,6 +178,7 @@ rule psm_protein_coverage_stats:
         fasta=config['proteindb_fasta_stop_filtered']
     output:
         "results/PSM_protein_coverage_stats.tsv"
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/psm_get_coverage_stats.py -pep {input.pep} -psm {input.psm} -f {input.fasta} > {output} "
 
@@ -165,6 +188,7 @@ rule psm_assign_gene_id:
         fasta=config['proteindb_fasta_stop_filtered']
     output:
         "results/PSMs_gene_IDs.tsv"
+    conda: "envs/main_env.yaml"
     shell:
         "python src/psm_check_multigene.py -i {input.psm} -f {input.fasta} -o {output}"
 
@@ -173,6 +197,7 @@ rule psm_get_identified_variants:
         "results/PSM_reports_annotated_1FDR.txt"
     output:
         "results/PSM_identified_variants.tsv"
+    conda: "envs/main_env.yaml"
     shell:
         "python src/psm_identified_variants.py -i {input} -o {output}"
 
@@ -185,6 +210,7 @@ rule psm_get_observed_predicted_spectra:
         mzml_dir=config['mzml_dir'],
         predictions_dir=config['predictions_dir'],
         pep_type='multi-variant'
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/psm_get_observed_predicted_list.py -i {input} -m {params.mzml_dir} -p {params.predictions_dir} -type {params.pep_type} -o {output}"
 
@@ -196,6 +222,7 @@ rule psm_make_violinplots:
         out2="results/q-val_violinplot.pdf",
         out3="results/ang_simil_violinplot.pdf",
         out4="results/RT_diff_violinplot.pdf"
+    conda: "envs/main_env.yaml"
     shell:
         "python3 src/psm_get_violinplots.py -i {input} -val_field posterior_error_prob -thr_field q-value -thr_value 0.01 -title \"PSM posterior error probability by peptide class\" -ylabel \"posterior error probability\" -o {output.out1} ; "
         "python3 src/psm_get_violinplots.py -i {input} -val_field q-value -thr_field q-value -thr_value 0.01 -title \"PSM q-value by peptide class\" -ylabel \"q-value\" -o {output.out2} ; "
