@@ -8,6 +8,7 @@ Steps for reproducing results:
 - Download supplementary data from (LINK)
 - Clone this repository
 - Provide path to the downloaded files following instructions `config.yaml`
+- For generating mirrored plots, a rerun of MS2PIP is necessary. This step can be skipped to re-generate the remaining results.
 - Run the pipeline using `snakemake -c<# cores> -p --use-conda`
 
 ## Additional files provided
