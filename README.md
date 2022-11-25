@@ -1,11 +1,11 @@
 # Identifying Protein Haplotypes by Mass Spectrometry
-Code related to the "Identifying Protein Haplotypes by Mass Spectrometry" publication
+Code related to the "Identifying Protein Haplotypes by Mass Spectrometry" publication: https://doi.org/10.1101/2022.11.21.517096
 
 ## Requirements and Usage
 Required software is Snakemake and Conda, remaining libraries are included in the provided Conda environment, created automatically by Snakemake.
 
 Steps for reproducing results:
-- Download supplementary data from (LINK)
+- Download supplementary data from https://doi.org/10.6084/m9.figshare.21408117.v1
 - Clone this repository
 - Provide path to the downloaded files following instructions `config.yaml`
 - For generating mirrored plots, a rerun of MS2PIP is necessary. This step can be skipped to re-generate the remaining results.
