@@ -1,6 +1,7 @@
 import argparse
 import re
 import pandas as pd
+import bisect
 from tqdm import tqdm
 from multiprocessing import Pool
 from common import get_protein_name_dict
@@ -38,6 +39,31 @@ psm_count = len(psm_df)
 print ("Reading", args.haplo_db)
 haplo_df = pd.read_csv(args.haplo_db, header=0)
 
+# Aggregate all the reference allele locations for each protein
+ref_alleles = {}
+for index,row in haplo_df.iterrows():
+    if ('ref' in row['name']):
+        continue
+
+    protID = row['protein_stable_id']
+    SNPs = row['name'].split(':',1)[1].split(',')
+    locations = [ int(re.split('\d+', SNP)[0]) for SNP in SNPs ]
+    ref = [ re.split('\d+', SNP)[1].split('>',1)[0] for SNP in SNPs ]
+    
+    if protID in ref_alleles:
+        protData = ref_alleles[protID]
+
+        for i in range(len(SNPs)):
+            idx = bisect.bisect_left(protData['loc'], locations[i])
+            if (locations[i] != protData['loc'][idx]):
+                protData['loc'].insert(idx, locations[i])
+                protData['ref'].insert(idx, ref[i])
+
+        ref_alleles[protID] = protData
+    
+    else:
+        ref_alleles[protID] = { 'loc': locations, 'ref': ref }
+
 annotation_data = []
 annotation_columns = [
         'PSMId', 
@@ -45,6 +71,7 @@ annotation_columns = [
         'Position',     # Replace the positions of peptides within proteins taking into account possible preceding stop codons, which have been removed in the search database, but need to be included in the post-processing step to correctly align sequences
         'PeptideType', 
         'CoveredSNPs', 
+        'CoveredRefAlleles'
         'Haplotypes', 
         'HaplotypeFreqs', 
         'OtherMatches'
@@ -72,6 +99,18 @@ def check_stop(fastaID, pos_from, pos_to):
             break
 
     return False, pos_from
+
+# Checks if any reference alleles are identified for the given protein
+def check_ref_alleles(protID, pos_from, pos_to):
+    result = []
+    protData = ref_alleles[protID]
+    for i,loc in enumerate(protData['loc']):
+        if (loc >= pos_to):
+            break
+        if (loc >= pos_from):
+            result.append(protID + ':' + str(loc) + ':' + protData['ref'][i])
+
+    return result
 
 def process_row(index):
     row = psm_df.iloc[index]
@@ -116,6 +155,7 @@ def process_row(index):
     protein_variants = []
     other_proteins = []
     SNPs = []
+    all_ref_alleles = []
     haplotype_frequencies = []
     pep_type = '-' # here will be specified whether the peptide is haplotype- or variant-specific
 
@@ -137,6 +177,7 @@ def process_row(index):
             protein_changes = haplo_description.split(",")
             haplotype_name = protein_name_dict[acc]
             all_matches.append(haplotype_name)
+            all_ref_alleles.extend(check_ref_alleles(protein_id, peptide_starts[prot_idx], peptide_starts[prot_idx] + peptide_length))
 
             # get the reference and haplotype frequencies
             relevantHaplotypes = haplo_df[haplo_df["protein_stable_id"] == protein_id]
@@ -172,7 +213,7 @@ def process_row(index):
 
             for change_idx, loc in enumerate(change_locations):
                 try:
-                    if (loc > peptide_starts[prot_idx] and loc < peptide_starts[prot_idx] + peptide_length):
+                    if (loc >= peptide_starts[prot_idx] and loc < peptide_starts[prot_idx] + peptide_length):
                         #print (acc + ":", "expected:", protein_changes[change_idx], "found:", row['Sequence'][:loc - peptide_starts[prot_idx - 1]], row['Sequence'][loc - peptide_starts[prot_idx] - 1], row['Sequence'][loc - peptide_starts[prot_idx]:])
                         #found_changes_count += 1
                         found_changes.append(protein_changes[change_idx])
@@ -201,7 +242,13 @@ def process_row(index):
     else:
         # if the peptide matches to a canonical protein, discard all the haplotype matches
         other_proteins = [acc for acc in protein_accessions if acc.startswith("ENSP")]
-        all_matches = protein_accessions
+        all_matches = protein_accessions        
+
+        if (is_canonical):
+            for i,protID in enumerate(protein_accessions):
+                if protID.startswith("ENSP"):
+                    all_ref_alleles.extend(check_ref_alleles(protID.split('.',1)[0], peptide_starts[i], peptide_starts[i] + peptide_length))
+
         if is_decoy:
             pep_type = 'decoy'
         elif all_have_stop:
@@ -222,7 +269,7 @@ def process_row(index):
         other_proteins = ['-']
 
     #print(str(index) + ' / ' + str(psm_count), end='\r')
-    return [row['PSMId'], ';'.join(protein_accessions), ';'.join([ str(pos) for pos in peptide_starts ]), pep_type, ';'.join(SNPs), ';'.join(protein_haplotypes), ';'.join(haplotype_frequencies), ';'.join(other_proteins)]
+    return [row['PSMId'], ';'.join(protein_accessions), ';'.join([ str(pos) for pos in peptide_starts ]), pep_type, ';'.join(SNPs), ';'.join(all_ref_alleles),';'.join(protein_haplotypes), ';'.join(haplotype_frequencies), ';'.join(other_proteins)]
     
 
 # read PSMs line by line, check whether any peptide is haplotype- or variant-specific
