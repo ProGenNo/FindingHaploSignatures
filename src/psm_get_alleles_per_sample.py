@@ -14,39 +14,38 @@ parser.add_argument("-o", dest="output_file", required=True,
 args = parser.parse_args()
 
 print ('Reading', args.input_file)
-psm_df = pd.read_csv(args.input_file, sep='\t', header=0, low_memory=False)
+psm_df = pd.read_csv(args.input_file, sep='\t', header=0)
 psm_df = psm_df[(psm_df['PeptideType'] != 'decoy') & (psm_df['PeptideType'] != 'contaminant') & (psm_df['PeptideType'] != 'has_stop')]
 
 samples_data = {}
 
 for index,row in psm_df.iterrows():
-    if ((row['CoveredRefAlleles'] == '') and (row['CoveredSNPs'] == '')):
-        continue
-
     sample = row['sample_ID']
     proteins = {}
 
-    if (row['CoveredSNPs'] == ''):
-        for SNP in re.split(r"[,;]", row['CoveredSNPs']):
-            protID = SNP.split(':',1)[0]
-            loc = SNP.split(':',2)[1]
-            allele = SNP.split('>',1)[1]
+    if (row['CoveredSNPs'] != '-'):
+        for substr in row['CoveredSNPs'].split(';'):
+            protID = substr.split(':',1)[0]
+            
+            for SNP in substr.split(':',1)[1].split(','):
+                loc = re.split('[^\d+]', SNP)[0]
+                allele = SNP.split('>',1)[1]
 
-            if (protID in proteins):
-                if (loc in proteins[protID]):
-                    if allele in proteins[protID][loc]['alleles']:
-                        allele_idx = proteins[protID][loc]['alleles'].index(allele)
-                        proteins[protID][loc]['PSM_counts'][allele_idx] += 1
+                if (protID in proteins):
+                    if (loc in proteins[protID]):
+                        if allele in proteins[protID][loc]['alleles']:
+                            allele_idx = proteins[protID][loc]['alleles'].index(allele)
+                            proteins[protID][loc]['PSM_counts'][allele_idx] += 1
+                        else:
+                            proteins[protID][loc]['alleles'].append(allele)
+                            proteins[protID][loc]['PSM_counts'].append(1)
                     else:
-                        proteins[protID][loc]['alleles'].append(allele)
-                        proteins[protID][loc]['PSM_counts'].append(1)
+                        proteins[protID][loc] = {'alleles': [allele], 'PSM_counts': [1]}
                 else:
+                    proteins[protID] = {}
                     proteins[protID][loc] = {'alleles': [allele], 'PSM_counts': [1]}
-            else:
-                proteins[protID] = {}
-                proteins[protID][loc] = {'alleles': [allele], 'PSM_counts': [1]}
 
-    if (row['CoveredRefAlleles'] == ''):
+    if (row['CoveredRefAlleles'] == row['CoveredRefAlleles']):  # check for NaN values
         for REF in re.split(r"[,;]", row['CoveredRefAlleles']):
             protID = REF.split(':',1)[0]
             loc = REF.split(':',2)[1]
