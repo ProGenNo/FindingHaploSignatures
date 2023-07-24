@@ -10,7 +10,7 @@ rule all:
         psm3="results/q-val_violinplot.pdf",
         psm4="results/ang_simil_violinplot.pdf",
         psm5="results/RT_diff_violinplot.pdf",
-        psm6="results/PSMs_multivar_observed_predicted.txt",
+        #psm6="results/PSMs_multivar_observed_predicted.txt",
         psm7="results/PSM_identified_variants.tsv",
         psm8="results/PSMs_gene_IDs.tsv"
 
