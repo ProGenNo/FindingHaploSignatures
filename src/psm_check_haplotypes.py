@@ -42,20 +42,24 @@ haplo_df = pd.read_csv(args.haplo_db, header=0)
 # Aggregate all the reference allele locations for each protein
 ref_alleles = {}
 for index,row in haplo_df.iterrows():
-    if ('ref' in row['name']):
+    if (('REF' in row['name']) or ('ins' in row['name']) or ('del' in row['name']) or ('{' in row['name'])):
         continue
 
     protID = row['protein_stable_id']
     SNPs = row['name'].split(':',1)[1].split(',')
-    locations = [ int(re.split('\d+', SNP)[0]) for SNP in SNPs ]
-    ref = [ re.split('\d+', SNP)[1].split('>',1)[0] for SNP in SNPs ]
+    try:
+        locations = [ int(re.split('[^\d]+', SNP)[0]) for SNP in SNPs ]
+        ref = [ re.split('\d+', SNP)[1].split('>',1)[0] for SNP in SNPs ]
+    except:
+        print(row['name'])
+    #ref = [ re.split('\d+', SNP)[1].split('>',1)[0] for SNP in SNPs ]
     
     if protID in ref_alleles:
         protData = ref_alleles[protID]
 
         for i in range(len(SNPs)):
             idx = bisect.bisect_left(protData['loc'], locations[i])
-            if (locations[i] != protData['loc'][idx]):
+            if ((idx == len(protData['loc'])) or (locations[i] != protData['loc'][idx])):
                 protData['loc'].insert(idx, locations[i])
                 protData['ref'].insert(idx, ref[i])
 
@@ -71,7 +75,7 @@ annotation_columns = [
         'Position',     # Replace the positions of peptides within proteins taking into account possible preceding stop codons, which have been removed in the search database, but need to be included in the post-processing step to correctly align sequences
         'PeptideType', 
         'CoveredSNPs', 
-        'CoveredRefAlleles'
+        'CoveredRefAlleles', 
         'Haplotypes', 
         'HaplotypeFreqs', 
         'OtherMatches'
@@ -101,14 +105,17 @@ def check_stop(fastaID, pos_from, pos_to):
     return False, pos_from
 
 # Checks if any reference alleles are identified for the given protein
-def check_ref_alleles(protID, pos_from, pos_to):
+def check_ref_alleles(seq, protID, pos_from, pos_to):
+    if (protID not in ref_alleles):
+        return []
     result = []
     protData = ref_alleles[protID]
     for i,loc in enumerate(protData['loc']):
         if (loc >= pos_to):
             break
         if (loc >= pos_from):
-            result.append(protID + ':' + str(loc) + ':' + protData['ref'][i])
+            if (seq[loc - pos_from] == protData['ref'][i]):
+                result.append(protID + ':' + str(loc) + ':' + protData['ref'][i])
 
     return result
 
@@ -177,7 +184,7 @@ def process_row(index):
             protein_changes = haplo_description.split(",")
             haplotype_name = protein_name_dict[acc]
             all_matches.append(haplotype_name)
-            all_ref_alleles.extend(check_ref_alleles(protein_id, peptide_starts[prot_idx], peptide_starts[prot_idx] + peptide_length))
+            all_ref_alleles.extend(check_ref_alleles(row['Sequence'], protein_id, peptide_starts[prot_idx], peptide_starts[prot_idx] + peptide_length))
 
             # get the reference and haplotype frequencies
             relevantHaplotypes = haplo_df[haplo_df["protein_stable_id"] == protein_id]
@@ -203,8 +210,8 @@ def process_row(index):
                 freq_annot = "more:" + str(haplo_freq) + "(" + str(ref_freq) + ")"
 
             # parse the haplotype name into AAs in reference and alt allele and locations of variation
-            ref_alleles = list(map(lambda x: re.split('\d+', x)[1].split('>')[0], protein_changes))
-            var_alleles = list(map(lambda x: re.split('\d+', x)[1].split('>')[1], protein_changes))
+            # ref_alleles = list(map(lambda x: re.split('\d+', x)[1].split('>')[0], protein_changes))
+            # var_alleles = list(map(lambda x: re.split('\d+', x)[1].split('>')[1], protein_changes))
             change_locations = list(map(lambda x: int(re.split('[a-zA-Z\*]+', x)[0]), protein_changes))
 
             # check how many of these changes affect this peptide
@@ -247,7 +254,7 @@ def process_row(index):
         if (is_canonical):
             for i,protID in enumerate(protein_accessions):
                 if protID.startswith("ENSP"):
-                    all_ref_alleles.extend(check_ref_alleles(protID.split('.',1)[0], peptide_starts[i], peptide_starts[i] + peptide_length))
+                    all_ref_alleles.extend(check_ref_alleles(row['Sequence'], protID.split('.',1)[0], peptide_starts[i], peptide_starts[i] + peptide_length))
 
         if is_decoy:
             pep_type = 'decoy'

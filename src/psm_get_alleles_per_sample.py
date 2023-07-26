@@ -20,6 +20,9 @@ psm_df = psm_df[(psm_df['PeptideType'] != 'decoy') & (psm_df['PeptideType'] != '
 samples_data = {}
 
 for index,row in psm_df.iterrows():
+    if ((row['q-value'] > 0.01) or (('variant' in row['PeptideType']) and ('confident' not in row['PepQuery_class']))):
+        continue
+
     sample = row['sample_ID']
     proteins = {}
 
