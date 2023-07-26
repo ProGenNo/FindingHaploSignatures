@@ -114,7 +114,7 @@ def check_ref_alleles(seq, protID, pos_from, pos_to):
         if (loc >= pos_to):
             break
         if (loc >= pos_from):
-            if (seq[loc - pos_from] == protData['ref'][i]):
+            if (seq[loc - pos_from - 1] == protData['ref'][i]):
                 result.append(protID + ':' + str(loc) + ':' + protData['ref'][i])
 
     return result
@@ -220,7 +220,7 @@ def process_row(index):
 
             for change_idx, loc in enumerate(change_locations):
                 try:
-                    if (loc >= peptide_starts[prot_idx] and loc < peptide_starts[prot_idx] + peptide_length):
+                    if (loc > peptide_starts[prot_idx] and loc <= peptide_starts[prot_idx] + peptide_length):
                         #print (acc + ":", "expected:", protein_changes[change_idx], "found:", row['Sequence'][:loc - peptide_starts[prot_idx - 1]], row['Sequence'][loc - peptide_starts[prot_idx] - 1], row['Sequence'][loc - peptide_starts[prot_idx]:])
                         #found_changes_count += 1
                         found_changes.append(protein_changes[change_idx])
@@ -268,6 +268,8 @@ def process_row(index):
     #psm_df.at[index, 'Peptide type'] = ','.join(peptide_types)
     if (len(SNPs) == 0):
         SNPs = ['-']
+    if (len(all_ref_alleles) == 0):
+        all_ref_alleles = ['-']
     if (len(protein_haplotypes) == 0):
         protein_haplotypes = ['-']
     if (len(haplotype_frequencies) == 0):
@@ -285,6 +287,8 @@ with Pool(args.threads) as pool:
     annotation_data = list(tqdm(pool.imap_unordered(process_row, range(0, len(psm_df))), total=len(psm_df)))
     pool.close()
     pool.join()
+
+#annotation_data = list(map(process_row, range(0, len(psm_df)))) # sequential run for debugging
 
 # there will be some empty rows - filter them out
 annotation_data = [ row for row in annotation_data if len(row) > 0]

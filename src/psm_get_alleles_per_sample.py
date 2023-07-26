@@ -20,17 +20,22 @@ psm_df = psm_df[(psm_df['PeptideType'] != 'decoy') & (psm_df['PeptideType'] != '
 samples_data = {}
 
 for index,row in psm_df.iterrows():
-    if ((row['q-value'] > 0.01) or (('variant' in row['PeptideType']) and ('confident' not in row['PepQuery_class']))):
+    if ((row['q-value'] > 1.01)): #or (('variant' in row['PeptideType']) and ('confident' not in row['PepQuery_class']))):
         continue
 
     sample = row['sample_ID']
     proteins = {}
+    processed_snps = []
 
     if (row['CoveredSNPs'] != '-'):
         for substr in row['CoveredSNPs'].split(';'):
             protID = substr.split(':',1)[0]
-            
+
             for SNP in substr.split(':',1)[1].split(','):
+                if (SNP in processed_snps):
+                    continue
+
+                processed_snps.append(SNP)  # avoid duplicates
                 loc = re.split('[^\d+]', SNP)[0]
                 allele = SNP.split('>',1)[1]
 
@@ -48,7 +53,7 @@ for index,row in psm_df.iterrows():
                     proteins[protID] = {}
                     proteins[protID][loc] = {'alleles': [allele], 'PSM_counts': [1]}
 
-    if (row['CoveredRefAlleles'] == row['CoveredRefAlleles']):  # check for NaN values
+    if (row['CoveredRefAlleles'] != '-'):
         for REF in re.split(r"[,;]", row['CoveredRefAlleles']):
             protID = REF.split(':',1)[0]
             loc = REF.split(':',2)[1]
