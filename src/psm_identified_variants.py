@@ -16,7 +16,7 @@ args = parser.parse_args()
 psm_df = pd.read_csv(args.input_file, sep='\t', header=0)
 
 result_data = []
-result_columns = ['ProteinVariant', 'Peptide', 'PeptideType', 'PSMId']
+result_columns = ['ProteinVariant', 'Peptide', 'PeptideType', 'PSMId', 'Samples']
 
 # store each found variant in each peptide as a separate entry, aggregate later
 for index, row in psm_df.iterrows():
@@ -42,7 +42,7 @@ for index, row in psm_df.iterrows():
             continue
 
         for SNP in SNPs:
-            result_data.append([protein_stable_id + ':' + SNP, row['Peptide'], peptide_type, row['PSMId']])
+            result_data.append([protein_stable_id + ':' + SNP, row['Peptide'], peptide_type, row['PSMId'], row['sample_ID']])
 
 result_df = pd.DataFrame(data=result_data, columns=result_columns)
 
@@ -50,12 +50,14 @@ def group_rows(df):
     df['Peptide'] = ';'.join(df['Peptide'].tolist())
     df['PeptideType'] = ';'.join(df['PeptideType'].tolist())
     df['PSMId'] = ';'.join(df['PSMId'].tolist())
+    df['Samples'] = ';'.join(df['Samples'].tolist())
     return df
 
 g = result_df.groupby(['ProteinVariant']).apply(group_rows)
 result_df['Peptide'] = g['Peptide']
 result_df['PeptideType'] = g['PeptideType']
 result_df['PSMId'] = g['PSMId']
+result_df['Samples'] = g['Samples']
 result_df.drop_duplicates(subset="ProteinVariant", keep="first", inplace=True)
 
 result_df.to_csv(args.output_file, sep='\t', header=True, index=False)

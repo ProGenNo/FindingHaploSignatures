@@ -62,7 +62,7 @@ def group_rows(df):
 
     return df
 
-g = peptides_df.groupby(['Sequence']).apply(group_rows)
+g = peptides_df.groupby(['Sequence']).apply(group_rows).reset_index(level=0, drop=True)
 peptides_df['GeneID'] = g['GeneID']
 peptides_df['ProteinID'] = g['ProteinID']
 peptides_df['Position'] = g['Position']

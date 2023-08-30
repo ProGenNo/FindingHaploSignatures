@@ -27,10 +27,10 @@ parser.add_argument("-p", dest="predictions_dir", required=True,
                     help="directory with prediction files")
 
 parser.add_argument("-e", dest="engine", required=False,
-                    help="directory with ID report files", default='xtandem')
+                    help="search engine name (default: \"xtandem\")", default='xtandem')
 
-parser.add_argument("-type", dest="pep_type", required=True,
-                    help="peptide type")
+#parser.add_argument("-type", dest="pep_type", required=True,
+#                    help="peptide type")
 
 parser.add_argument("-o", dest="output_file", required=True,
                     help="output filename")
@@ -38,7 +38,7 @@ parser.add_argument("-o", dest="output_file", required=True,
 args = parser.parse_args()
 
 psm_df = pd.read_csv(args.input_file, sep='\t', header=0)
-psm_df = psm_df[psm_df['PeptideType'] == args.pep_type]
+#psm_df = psm_df[psm_df['PeptideType'] == args.pep_type]
 
 mzml_readers = {}
 
@@ -92,7 +92,7 @@ for index, row in psm_df.iterrows():
     # ids_df = pd.read_csv(args.id_dir + sample + '/' + sample + "_" + args.engine + "_PSM_identifiers_export", sep='\t', header=0)
     ms2pipId = spectrum_pred_id
 
-    pred_df = pd.read_csv(args.predictions_dir + sample + "_" + args.engine + "/peprec_HCD_predictions.csv", header=0)
+    pred_df = pd.read_csv(args.predictions_dir + sample + "_" + args.engine + "/peprec_HCDch2_predictions.csv", header=0)
 
     pred_df = pred_df[pred_df['spec_id'] == ms2pipId]
     pred_df = pred_df[pred_df['prediction'] > 0.001]
