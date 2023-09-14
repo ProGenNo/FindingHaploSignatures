@@ -144,6 +144,7 @@ def process_gene(geneID):
 
         # add the remainder of the protein that's not covered, if any
         prot_len = len(all_proteins[proteinID]['sequence'])
+        coverage.append([coverage[-1][1], prot_len, -1])
         local_aa[0] += (prot_len - coverage[-1][1])
 
         local_var[0] += SNPstats['single_variant']
