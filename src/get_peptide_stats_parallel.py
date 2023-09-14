@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from common import get_protein_name_dict, get_protein_coverage
 import argparse
 import bisect
@@ -161,7 +162,10 @@ def process_gene(geneID):
 print ('Annotating proteome coverage.')
 
 with Pool(args.threads) as p:
-    gene_results = p.map(process_gene, all_genes)
+    gene_results = list(tqdm(p.imap_unordered(process_gene, range(len(all_genes))), total=len(all_genes)))
+    p.close()
+    p.join()
+    
     for i, result in enumerate(gene_results):
         if (len(result[0]) == 0):
             continue 
