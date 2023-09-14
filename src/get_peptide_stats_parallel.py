@@ -142,6 +142,10 @@ def process_gene(geneID):
             region_type = region[2] + 1
             local_aa[region_type] += region_len
 
+        # add the remainder of the protein that's not covered, if any
+        prot_len = len(all_proteins[proteinID]['sequence'])
+        local_aa[0] += (prot_len - coverage[-1][1])
+
         local_var[0] += SNPstats['single_variant']
         local_var[1] += SNPstats['both']
         local_var[2] += SNPstats['multi_variant']
