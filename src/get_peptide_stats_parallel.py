@@ -200,7 +200,7 @@ for protein in all_proteins.values():
 total_var_sum = sum(total_var)
 
 print ("Proteome length:", total_aa_sum)
-print ("Canonical proteome: %d AAs - %.2f %%,\npossible single_variant peptides: %d AAs - %.2f %%,\npossible multi_variant peptides: %d AAs - %.2f %%,\nsequences not matching to peptides: %d AAs - %.2f %%" % (total_aa[1], (total_aa[1] / total_aa_sum) * 100, total_aa[2], (total_aa[2] / total_aa_sum) * 100, total_aa[3], (total_aa[3] / total_aa_sum) * 100, total_aa[0], (total_aa[0] / total_aa_sum) * 100))
+print ("Canonical proteome: %d AAs - %.2f %%,\npossible single_variant peptides: %d AAs - %.2f %%,\npossible multi_variant peptides: %d AAs - %.2f %%,\nsequences not matching to peptides: %d AAs - %.2f %%" % (total_aa[1], (total_aa[1] / total_aa_sum) * 100, total_aa[2], (total_aa[2] / total_aa_sum) * 100, total_aa[3], (total_aa[3] / total_aa_sum) * 100, (total_aa_sum - sum(total_aa[1:])), ((total_aa_sum - sum(total_aa[1:])) / total_aa_sum) * 100))
 print ()
 print ("Total number of variants:", total_var_sum)
 if (total_var_sum > 0):
