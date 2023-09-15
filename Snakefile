@@ -30,11 +30,13 @@ rule create_peptide_db:
     output:
         "results/PeptideList.tsv"
     params:
-        max_cores=config['max_cores']
+        max_cores=config['max_cores'],
+        min_len=config['min_len'],
+        max_len=config['max_len']
     threads: config['max_cores']
     conda: "envs/main_env.yaml"
     shell:
-        "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -o {output}"
+        "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -min_len {params.min_len} -max_len {params.max_len} -o {output}"
 
 rule db_aggregate_dupliate_peptides:
 	input:

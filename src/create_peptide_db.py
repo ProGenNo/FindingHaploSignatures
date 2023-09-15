@@ -16,6 +16,12 @@ parser.add_argument("-i", dest="input_fasta", required=True,
 parser.add_argument("-m", dest="missed_cl", type=int, required=True,
                     help="# missed cleavage sites allowed")
 
+parser.add_argument("-min_len", dest="min_len", type=int, required=True,
+                    help="min. peptide length")
+
+parser.add_argument("-max_len", dest="max_len", type=int, required=True,
+                    help="max. peptide length")
+
 parser.add_argument("-sl", dest="subst_list", required=True,
                     help="AA substitution list by protein")
 
@@ -82,7 +88,7 @@ all_protein_ids = list(all_proteins.keys())
 def process_protein(idx):
     proteinID = all_protein_ids[idx]
     sequence = all_proteins[proteinID]['sequence']
-    peptides, peptide_positions = digest(sequence, args.missed_cl, 8, 40)
+    peptides, peptide_positions = digest(sequence, args.missed_cl, args.min_len, args.max_len)
     result = []
 
     protein_changes = []
