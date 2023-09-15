@@ -75,7 +75,8 @@ all_genes = pep_df[['GeneID']].drop_duplicates()['GeneID'].tolist()
 for geneID in all_genes:
     all_peptides[geneID] = pep_df[pep_df['GeneID'] == geneID]
 
-def process_gene(geneID):
+def process_gene(geneIdx):
+    geneID = all_genes[geneIdx]
     local_df = all_peptides[geneID]
     
     protein_peptides = {}       # dictionary of mapptings between peptides and proteins -> to be aggregated into coverage stats
@@ -145,8 +146,8 @@ def process_gene(geneID):
 
         # add the remainder of the protein that's not covered, if any
         prot_len = len(all_proteins[proteinID]['sequence'])
-        coverage.append([coverage[-1][1], prot_len, -1])
         local_aa[0] += (prot_len - coverage[-1][1])
+        coverage.append([coverage[-1][1], prot_len, -1])
 
         local_var[0] += SNPstats['single_variant']
         local_var[1] += SNPstats['both']
@@ -165,7 +166,7 @@ with Pool(args.threads) as p:
     gene_results = list(tqdm(p.imap_unordered(process_gene, range(len(all_genes))), total=len(all_genes)))
     p.close()
     p.join()
-    
+
     for i, result in enumerate(gene_results):
         if (len(result[0]) == 0):
             continue 
@@ -193,7 +194,7 @@ total_aa_sum = 0
 
 for protein in all_proteins.values():
     if (protein['accession'].startswith('ENSP')):
-        total_aa_sum += len(protein['sequence'])
+        total_aa_sum += len(protein['sequence'].replace('*', ''))
 
 # total number of discoverable substitutions
 total_var_sum = sum(total_var)

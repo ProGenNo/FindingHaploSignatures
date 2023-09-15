@@ -38,7 +38,7 @@ total_aa_sum = 0
 
 for protein in all_proteins.values():
     if (protein['accession'].startswith('ENSP')):
-        total_aa_sum += len(protein['sequence'])
+        total_aa_sum += len(protein['sequence'].replace('*', ''))
 
 total_var_sum = sum(total_var)
 
