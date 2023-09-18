@@ -23,7 +23,7 @@ for index, row in psm_df.iterrows():
     coveredSNPs = row['CoveredSNPs'].split(';')
     peptide_type_global = row['PeptideType']
     for entry in coveredSNPs:
-        if entry is '-':
+        if entry == '-':
             continue
 
         protein_stable_id = entry.split(':')[0]
@@ -53,11 +53,7 @@ def group_rows(df):
     df['Samples'] = ';'.join(df['Samples'].tolist())
     return df
 
-g = result_df.groupby(['ProteinVariant']).apply(group_rows).reset_index(level=0, drop=True)
-result_df['Peptide'] = g['Peptide'].reset_index(level=0, drop=True)
-result_df['PeptideType'] = g['PeptideType'].reset_index(level=0, drop=True)
-result_df['PSMId'] = g['PSMId'].reset_index(level=0, drop=True)
-result_df['Samples'] = g['Samples'].reset_index(level=0, drop=True)
+result_df = result_df.groupby(['ProteinVariant']).apply(group_rows)
 result_df.drop_duplicates(subset="ProteinVariant", keep="first", inplace=True)
 
 result_df.to_csv(args.output_file, sep='\t', header=True, index=False)

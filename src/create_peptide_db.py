@@ -221,15 +221,8 @@ def group_rows(df):
 
 print ("Grouping by peptide and gene.")
 
-g = peptides_df.groupby(['Sequence', 'GeneID']).apply(group_rows).reset_index(level=0, drop=True)
-peptides_df['ProteinID'] = g['ProteinID'].reset_index(level=0, drop=True)
-peptides_df['Position'] = g['Position'].reset_index(level=0, drop=True)
-peptides_df['type'] = g['type'].reset_index(level=0, drop=True)
-peptides_df['SNPs'] = g['SNPs'].reset_index(level=0, drop=True)
-peptides_df['possible_linked_SNPs'] = g['possible_linked_SNPs'].reset_index(level=0, drop=True)
-peptides_df['matches_contaminant'] = g['matches_contaminant'].reset_index(level=0, drop=True)
-
-peptides_df.drop_duplicates(subset=['Sequence', 'GeneID'], inplace=True, ignore_index=True)
+peptides_df = peptides_df.groupby(['Sequence', 'GeneID']).apply(group_rows)
+peptides_df.drop_duplicates(subset=['Sequence', 'GeneID'], inplace=True)
 
 print ("Writing output to", args.output_file)
 peptides_df.to_csv(args.output_file, sep='\t', header=True, index=False)
