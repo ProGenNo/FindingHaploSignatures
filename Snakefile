@@ -6,10 +6,10 @@ rule all:
         db2="results/PeptideCoverageText.tsv",
         db3="results/PeptideCoverageCategoriesText.txt",
         psm1="results/PSM_protein_coverage_stats.tsv",
-        psm2="results/PEP_violinplot.pdf",
-        psm3="results/q-val_violinplot.pdf",
-        psm4="results/ang_simil_violinplot.pdf",
-        psm5="results/RT_diff_violinplot.pdf",
+        psm2="results/PEP_violinplot.png",
+        psm3="results/q-val_violinplot.png",
+        psm4="results/ang_simil_violinplot.png",
+        psm5="results/RT_diff_violinplot.png",
         #psm6="results/PSMs_multivar_observed_predicted.txt",
         psm7="results/PSM_identified_variants.tsv",
         psm8="results/PSMs_gene_IDs.tsv"
@@ -22,7 +22,7 @@ rule fill_stop_codons:
     conda: "envs/main_env.yaml"
     shell:
         "python3 src/fill-stop-codons.py -i {input} -o {output}"
-
+'''
 rule create_peptide_db:
     input:
         fasta=config['proteindb_fasta_stop'],
@@ -37,7 +37,7 @@ rule create_peptide_db:
     conda: "envs/main_env.yaml"
     shell:
         "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -min_len {params.min_len} -max_len {params.max_len} -o {output}"
-
+'''
 rule db_aggregate_dupliate_peptides:
 	input:
 		"results/PeptideList.tsv"
@@ -220,10 +220,10 @@ rule psm_make_violinplots:
     input:
         "results/PSM_reports_annotated.txt"
     output:
-        out1="results/PEP_violinplot.pdf",
-        out2="results/q-val_violinplot.pdf",
-        out3="results/ang_simil_violinplot.pdf",
-        out4="results/RT_diff_violinplot.pdf"
+        out1="results/PEP_violinplot.png",
+        out2="results/q-val_violinplot.png",
+        out3="results/ang_simil_violinplot.png",
+        out4="results/RT_diff_violinplot.png"
     conda: "envs/main_env.yaml"
     shell:
         "python3 src/psm_get_violinplots.py -i {input} -val_field posterior_error_prob -thr_field q-value -thr_value 0.01 -title \"PSM posterior error probability by peptide class\" -ylabel \"posterior error probability\" -o {output.out1} ; "

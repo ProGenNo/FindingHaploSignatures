@@ -53,11 +53,11 @@ def group_rows(df):
     df['Samples'] = ';'.join(df['Samples'].tolist())
     return df
 
-g = result_df.groupby(['ProteinVariant']).apply(group_rows)
-result_df['Peptide'] = g['Peptide']
-result_df['PeptideType'] = g['PeptideType']
-result_df['PSMId'] = g['PSMId']
-result_df['Samples'] = g['Samples']
+g = result_df.groupby(['ProteinVariant']).apply(group_rows).reset_index(level=0, drop=True)
+result_df['Peptide'] = g['Peptide'].reset_index(level=0, drop=True)
+result_df['PeptideType'] = g['PeptideType'].reset_index(level=0, drop=True)
+result_df['PSMId'] = g['PSMId'].reset_index(level=0, drop=True)
+result_df['Samples'] = g['Samples'].reset_index(level=0, drop=True)
 result_df.drop_duplicates(subset="ProteinVariant", keep="first", inplace=True)
 
 result_df.to_csv(args.output_file, sep='\t', header=True, index=False)

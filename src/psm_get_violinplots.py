@@ -35,7 +35,7 @@ args = parser.parse_args()
 
 print ("Reading", args.input_file)
 psm_df = pd.read_csv(args.input_file, sep='\t', header=0)
-psm_df = psm_df[(psm_df[args.threshold_field] < args.threshold_value) & (~psm_df['PeptideType'].str.match('contaminant')) & (~psm_df['PeptideType'].str.match('has_stop'))]
+psm_df = psm_df[(psm_df[args.threshold_field] <= args.threshold_value) & (~psm_df['PeptideType'].str.match('contaminant')) & (~psm_df['PeptideType'].str.match('has_stop'))]
 
 uniq_types = list(pd.unique(psm_df['PeptideType'].values.ravel()))
 #uniq_types = ['canonical', 'protein-coding-noncanonical', 'contaminant']
@@ -69,9 +69,9 @@ x_ticks = [ peptype + '\n#PSMs = {:,.0f}'.format(n_samples[i]) for i,peptype in 
 
 axes.set_ylabel(args.y_label)
 axes.set_xticks([i+1 for i in range(len(uniq_types))])
-axes.set_xticklabels(x_ticks, rotation=45, fontsize=10)
+axes.set_xticklabels(x_ticks, rotation=45, fontsize=11)
 fig.tight_layout()
 
-plt.savefig(args.output_file)
+plt.savefig(args.output_file, dpi=600)
 #plt.show()
 

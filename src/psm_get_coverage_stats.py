@@ -97,7 +97,7 @@ args = parser.parse_args()
 all_proteins = read_fasta(args.fasta_file)
 
 pep_df = pd.read_csv(args.pep_stats, sep='\t', header=0)
-coverage_df = pd.read_csv(args.psm_coverage, sep='/t', header=0)
+coverage_df = pd.read_csv(args.psm_coverage, sep='\t', header=0)
 
 total_aa = [0, 0, 0, 0] # lengths of proteome covered by type
 

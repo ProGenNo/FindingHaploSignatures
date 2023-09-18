@@ -24,6 +24,6 @@ parser.add_argument("-thr_value", dest="threshold_value", required=True,
 args = parser.parse_args()
 
 psm_df = pd.read_csv(args.input_file, sep='\t', header=0)
-result_df = psm_df[(psm_df[args.threshold_field] < args.threshold_value) & (~psm_df['PeptideType'].str.match('contaminant')) & (~psm_df['PeptideType'].str.match('has_stop'))]
+result_df = psm_df[(psm_df[args.threshold_field] <= args.threshold_value) & (~psm_df['PeptideType'].str.match('contaminant')) & (~psm_df['PeptideType'].str.match('has_stop'))]
 
 result_df.to_csv(args.output_file, sep='\t', header=True, index=False)
