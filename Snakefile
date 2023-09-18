@@ -72,7 +72,7 @@ rule concat_peptide_db:
         out1="results/PeptideList.tsv",
         out2="results/PeptideListUniq.tsv",
         out3="results/VariantPeptides.tsv"
-	conda: "envs/main_env.yaml"
+    conda: "envs/main_env.yaml"
     shell:
         "python src/concat_tables.py -i {input.in1[0]},{input.in1[1]} -o {output.out1}; "
         "python src/concat_tables.py -i {input.in2[0]},{input.in2[1]} -o {output.out2}; "

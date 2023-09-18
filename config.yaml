@@ -9,5 +9,6 @@ proteindb_fasta_stop_filtered: "data/ensembl_ref_haplo_contam_proteinDB_stop_fil
 
 merged_psm_list: <path to the table with PSMs (SD3)>
 
-mzml_dir: <path to the directory of mzML files, converted from raw files given in https://www.ebi.ac.uk/pride/archive/projects/PXD010154>
-predictions_dir: <path to the directory with MP2PIP result files>
+# OPTIONAL (when the mzML files and MS2PIP prediction fles are available, ignore otherwise):
+mzml_dir: "" # path to the directory of mzML files, converted from raw files given in https://www.ebi.ac.uk/pride/archive/projects/PXD010154
+predictions_dir: "" # path to the directory with MP2PIP result files
