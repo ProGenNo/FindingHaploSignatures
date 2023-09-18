@@ -297,7 +297,7 @@ print ('Done')
 #psm_df.to_csv("tonsil_trypsin_PSM_report_checked.txt", sep='\t', header=True, index=False)
 
 annotation_df = pd.DataFrame(data=annotation_data, columns=annotation_columns)
-result_df = pd.merge(psm_df.drop(['Proteins', 'Position'], axis=1), annotation_df, on='PSMId', suffixes=('', '_duplicate'))
+result_df = annotation_df.join(psm_df.drop(['Proteins', 'Position'], axis=1).set_index('PSMId'), on='PSMId', rsuffix='_duplicate')
 #summary_df.sort_values(by=['Peptide'], inplace=True)
 
 print ('Writing results to', args.output_file)
