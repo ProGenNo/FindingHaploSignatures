@@ -204,9 +204,9 @@ with Pool(args.threads) as p:
 #all_results = list(map(process_protein, range(0, total_protein_count)))
 
 peptides_df = pd.DataFrame(data=peptides_data, columns=peptides_columns)
+peptides_df['Length'] = peptides_df['Sequence'].apply(lambda x: len(x))
 
 del peptides_data
-
 
 def group_rows(df):
     df['ProteinID'] = ','.join(df['ProteinID'].tolist())
@@ -221,8 +221,12 @@ def group_rows(df):
 
 print ("Grouping by peptide and gene.")
 
-peptides_df = peptides_df.groupby(['Sequence', 'GeneID']).apply(group_rows)
-peptides_df.drop_duplicates(subset=['Sequence', 'GeneID'], inplace=True)
+grouped_dfs = [] 
+
+for l in range(args.min_len, args.max_len + 1):
+    grouped_df = peptides_df[peptides_df['Length'] == l].groupby(['Sequence', 'GeneID']).apply(group_rows)
+    grouped_df.drop_duplicates(subset=['Sequence', 'GeneID'], inplace=True)
+    grouped_dfs.append(grouped_df)
 
 print ("Writing output to", args.output_file)
-peptides_df.to_csv(args.output_file, sep='\t', header=True, index=False)
+pd.concat(grouped_dfs).to_csv(args.output_file, sep='\t', header=True, index=False)
