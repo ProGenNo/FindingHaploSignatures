@@ -1,4 +1,6 @@
 max_cores: <# cores>
+min_pep_len: 8    # minimum length of peptide for in-silico digestion
+max_pep_len: 40   # maximum length of peptide for in-silico digestion
 
 proteindb_fasta: <path to the fasta file without decoys (SD1)>
 proteindb_fasta_stop: "data/ensembl_ref_haplo_contam_proteinDB_stop.fa"

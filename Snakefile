@@ -22,31 +22,61 @@ rule fill_stop_codons:
     conda: "envs/main_env.yaml"
     shell:
         "python3 src/fill-stop-codons.py -i {input} -o {output}"
-'''
-rule create_peptide_db:
+
+rule create_peptide_db_part1:
     input:
         fasta=config['proteindb_fasta_stop'],
         subst_list="substitutions_list.tsv"
     output:
-        "results/PeptideList.tsv"
+        "results/PeptideList_part1.tsv"
     params:
         max_cores=config['max_cores'],
-        min_len=config['min_len'],
-        max_len=config['max_len']
+        min_pep_len=config['min_pep_len'],
+        max_pep_len=config['max_pep_len'] - int((config['max_pep_len'] - config['min_pep_len']) / 2)
     threads: config['max_cores']
     conda: "envs/main_env.yaml"
     shell:
-        "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -min_len {params.min_len} -max_len {params.max_len} -o {output}"
-'''
+        "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -min_pep_len {params.min_pep_len} -max_pep_len {params.max_pep_len} -o {output}"
+
+rule create_peptide_db_part2:
+    input:
+        fasta=config['proteindb_fasta_stop'],
+        subst_list="substitutions_list.tsv"
+    output:
+        "results/PeptideList_part2.tsv"
+    params:
+        max_cores=config['max_cores'],
+        min_pep_len=config['max_pep_len'] - int((config['max_pep_len'] - config['min_pep_len']) / 2) + 1,
+        max_pep_len=config['max_pep_len']
+    threads: config['max_cores']
+    conda: "envs/main_env.yaml"
+    shell:
+        "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -min_pep_len {params.min_pep_len} -max_pep_len {params.max_pep_len} -o {output}"
+
 rule db_aggregate_dupliate_peptides:
 	input:
-		"results/PeptideList.tsv"
+		"results/PeptideList_part{i}.tsv"
 	output:
-		all="results/PeptideListUniq.tsv",
-		variant="results/VariantPeptides.tsv"
+		all="results/PeptideListUniq_part{i}.tsv",
+		variant="results/VariantPeptides_part{i}.tsv"
 	conda: "envs/main_env.yaml"
 	shell:
 		"python3 src/check_duplicate_peptides.py -i {input} -o {output.all} -var {output.variant}"
+
+rule concat_peptide_db:
+    input:
+        in1=expand("results/PeptideList_part{i}.tsv", i=[1,2]),
+        in2=expand("results/PeptideListUniq_part{i}.tsv", i=[1,2]),
+        in3=expand("results/VariantPeptides_part{i}.tsv", i=[1,2])
+    output:
+        out1="results/PeptideList.tsv",
+        out2="results/PeptideListUniq.tsv",
+        out3="results/VariantPeptides.tsv"
+	conda: "envs/main_env.yaml"
+    shell:
+        "python src/concat_tables.py -i {input.in1[0]},{input.in1[1]} -o {output.out1}; "
+        "python src/concat_tables.py -i {input.in2[0]},{input.in2[1]} -o {output.out2}; "
+        "python src/concat_tables.py -i {input.in3[0]},{input.in3[1]} -o {output.out3}"
 
 rule db_fill_missing_columns:
     input:
