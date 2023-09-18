@@ -36,7 +36,7 @@ rule create_peptide_db_part1:
     threads: config['max_cores']
     conda: "envs/main_env.yaml"
     shell:
-        "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -min_pep_len {params.min_pep_len} -max_pep_len {params.max_pep_len} -o {output}"
+        "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -min_len {params.min_pep_len} -max_len {params.max_pep_len} -o {output}"
 
 rule create_peptide_db_part2:
     input:
@@ -51,7 +51,7 @@ rule create_peptide_db_part2:
     threads: config['max_cores']
     conda: "envs/main_env.yaml"
     shell:
-        "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -min_pep_len {params.min_pep_len} -max_pep_len {params.max_pep_len} -o {output}"
+        "python3 src/create_peptide_db.py -i {input.fasta} -m 2 -sl {input.subst_list} -t {params.max_cores} -min_len {params.min_pep_len} -max_len {params.max_pep_len} -o {output}"
 
 rule db_aggregate_dupliate_peptides:
 	input:
