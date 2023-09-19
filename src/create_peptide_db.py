@@ -221,12 +221,14 @@ def group_rows(df):
 
 print ("Grouping by peptide and gene.")
 
-grouped_dfs = [] 
-
-for l in range(args.min_len, args.max_len + 1):
+def group_peptides(l):
     grouped_df = peptides_df[peptides_df['Length'] == l].groupby(['Sequence', 'GeneID']).apply(group_rows)
     grouped_df.drop_duplicates(subset=['Sequence', 'GeneID'], inplace=True)
-    grouped_dfs.append(grouped_df)
+    return grouped_df
 
-print ("Writing output to", args.output_file)
-pd.concat(grouped_dfs).to_csv(args.output_file, sep='\t', header=True, index=False)
+#for l in range(args.min_len, args.max_len + 1):
+
+with Pool(min(args.threads, (args.max_len - args.min_len + 1))):
+    grouped_dfs = list(tqdm(p.imap_unordered(group_peptides, range(args.min_len, args.max_len + 1)), total=(args.max_len - args.min_len + 1)))
+    print ("Writing output to", args.output_file)
+    pd.concat(grouped_dfs).to_csv(args.output_file, sep='\t', header=True, index=False)
