@@ -1,6 +1,8 @@
 import argparse
 import pandas as pd
 import re
+from multiprocessing import Pool
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser(
 	description='Removes duplicate peptide sequences.')
@@ -17,6 +19,7 @@ parser.add_argument("-var", dest="variant_output_file", required=True,
 args = parser.parse_args()
 
 peptides_df = pd.read_csv(args.input_file, sep='\t', header=0)
+all_lengths = peptides_df['Length'].drop_duplicates().tolist()
 
 def group_rows(df):
     all_genes = ';'.join(df['GeneID'].tolist())
@@ -62,8 +65,12 @@ def group_rows(df):
 
     return df
 
-grouped_df = peptides_df.groupby(['Sequence']).apply(group_rows)
-grouped_df.drop_duplicates(subset="Sequence", keep="first", inplace=True)
+def group_peptides(l):
+    grouped_df = peptides_df[peptides_df['Length'] == l].groupby(['Sequence']).apply(group_rows)
+    grouped_df.drop_duplicates(subset=['Sequence'], inplace=True, keep='first')
+    return grouped_df
 
-grouped_df.to_csv(args.output_file, sep='\t', header=True, index=False)
-grouped_df[grouped_df['type_aggregated'].str.contains('variant')].to_csv(args.variant_output_file, sep='\t', header=True, index=False)
+with Pool(min(args.threads, len(all_lengths))) as p:
+    grouped_dfs = list(tqdm(p.imap_unordered(group_peptides, range(min(all_lengths), max(all_lengths) + 1)), total=(len(all_lengths))))
+    print ("Writing output to", args.output_file)
+    pd.concat(grouped_dfs).to_csv(args.output_file, sep='\t', header=True, index=False)
