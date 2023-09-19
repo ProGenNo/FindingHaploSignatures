@@ -60,7 +60,7 @@ rule db_aggregate_dupliate_peptides:
 		all="results/PeptideListUniq_part{i}.tsv",
 		variant="results/VariantPeptides_part{i}.tsv"
 	conda: "envs/main_env.yaml"
-    threads: int((config['max_pep_len'] - config['min_pep_len']) / 2)
+	threads: int((config['max_pep_len'] - config['min_pep_len']) / 2)
 	shell:
 		"python3 src/check_duplicate_peptides.py -i {input} -o {output.all} -var {output.variant}"
 
