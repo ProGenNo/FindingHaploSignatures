@@ -78,7 +78,8 @@ annotation_columns = [
         'CoveredRefAlleles', 
         'Haplotypes', 
         'HaplotypeFreqs', 
-        'OtherMatches'
+        'OtherMatches',
+        'GeneIDs'
         ]
 
 print ("Annotating PSMs:")
@@ -161,6 +162,7 @@ def process_row(index):
     protein_haplotypes = []
     protein_variants = []
     other_proteins = []
+    gene_IDs = [ all_proteins[acc]['description'].split('gene:')[1].split('.')[0] for acc in protein_accessions if ('gene:' in all_proteins[acc]['description']) ]
     SNPs = []
     all_ref_alleles = []
     haplotype_frequencies = []
@@ -276,9 +278,11 @@ def process_row(index):
         haplotype_frequencies = ['-']
     if (len(other_proteins) == 0):
         other_proteins = ['-']
+    if (len(gene_IDs) == 0):
+        gene_IDs = ['-']
 
     #print(str(index) + ' / ' + str(psm_count), end='\r')
-    return [row['PSMId'], ';'.join(protein_accessions), ';'.join([ str(pos) for pos in peptide_starts ]), pep_type, ';'.join(SNPs), ';'.join(all_ref_alleles),';'.join(protein_haplotypes), ';'.join(haplotype_frequencies), ';'.join(other_proteins)]
+    return [row['PSMId'], ';'.join(protein_accessions), ';'.join([ str(pos) for pos in peptide_starts ]), pep_type, ';'.join(SNPs), ';'.join(all_ref_alleles),';'.join(protein_haplotypes), ';'.join(haplotype_frequencies), ';'.join(other_proteins), ';'.join(gene_IDs)]
     
 
 # read PSMs line by line, check whether any peptide is haplotype- or variant-specific
