@@ -162,7 +162,7 @@ def process_row(index):
     protein_haplotypes = []
     protein_variants = []
     other_proteins = []
-    gene_IDs = [ all_proteins[acc]['description'].split('gene:')[1].split('.')[0] for acc in protein_accessions if ('gene:' in all_proteins[acc]['description']) ]
+    gene_IDs = list(dict.fromkeys([ all_proteins[acc]['description'].split('gene:')[1].split('.')[0] for acc in protein_accessions if ('gene:' in all_proteins[acc]['description']) ]))
     SNPs = []
     all_ref_alleles = []
     haplotype_frequencies = []
