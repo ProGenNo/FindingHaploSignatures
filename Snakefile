@@ -5,6 +5,7 @@ rule all:
         db1="results/VariantDiscoverabilityList.tsv",
         db2="results/PeptideCoverageText.tsv",
         db3="results/PeptideCoverageCategoriesText.txt",
+        db4="results/PeptideTypesBarCHart.png",
         psm1="results/PSM_protein_coverage_stats.tsv",
         psm2="results/PEP_violinplot.png",
         psm3="results/q-val_violinplot.png",
@@ -159,6 +160,14 @@ rule db_get_snp_discoverability:
     conda: "envs/main_env.yaml"
     shell:
         "python3 src/create_SNP_discoverability_list.py -i {input} -o {output}"
+
+rule plot_peptide_type_distribution:
+    input:
+        "results/PeptideListUniq.tsv"
+    output:
+        "results/PeptideTypesBarCHart.png"
+    shell:
+        "python3 src/peptide_type_chart.py -i {input} -o {output}"
 
 # ---------------- PSM post-processing ------------------
 
