@@ -228,7 +228,7 @@ def group_peptides(l):
 
 #for l in range(args.min_len, args.max_len + 1):
 
-with Pool(min(args.threads, (args.max_len - args.min_len + 1))) as p:
+with Pool(min(args.threads, 5)) as p:
     grouped_dfs = list(tqdm(p.imap_unordered(group_peptides, range(args.min_len, args.max_len + 1)), total=(args.max_len - args.min_len + 1)))
     print ("Writing output to", args.output_file)
     pd.concat(grouped_dfs).to_csv(args.output_file, sep='\t', header=True, index=False)

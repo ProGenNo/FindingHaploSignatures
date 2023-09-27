@@ -13,6 +13,9 @@ parser.add_argument("-i", dest="input_file", required=True,
 parser.add_argument("-o", dest="output_file", required=True,
                     help="output file")
 
+parser.add_argument("-t", dest="threads", type=int, required=False, default=5,
+                    help="# threads to use")
+
 parser.add_argument("-var", dest="variant_output_file", required=True,
                     help="output file")
 
@@ -73,4 +76,8 @@ def group_peptides(l):
 with Pool(min(args.threads, len(all_lengths))) as p:
     grouped_dfs = list(tqdm(p.imap_unordered(group_peptides, range(min(all_lengths), max(all_lengths) + 1)), total=(len(all_lengths))))
     print ("Writing output to", args.output_file)
-    pd.concat(grouped_dfs).to_csv(args.output_file, sep='\t', header=True, index=False)
+    grouped_df = pd.concat(grouped_dfs)
+    grouped_df.to_csv(args.output_file, sep='\t', header=True, index=False)
+
+    print ("Writing variant peptides only to", args.variant_output_file)
+    grouped_df[grouped_df['type_aggregated'].str.contains('variant')].to_csv(args.variant_output_file, sep='\t', header=True, index=False)
