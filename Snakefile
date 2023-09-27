@@ -3,9 +3,9 @@ configfile: "config.yaml"
 rule all:
     input:
         db1="results/VariantDiscoverabilityList.tsv",
-        db2="results/PeptideCoverageText.tsv",
+        db2="results/PeptideCoverageText.txt",
         db3="results/PeptideCoverageCategoriesText.txt",
-        db4="results/PeptideTypesBarCHart.png",
+        db4="results/PeptideTypesBarChart.png",
         psm1="results/PSM_protein_coverage_stats.tsv",
         psm2="results/PEP_violinplot.png",
         psm3="results/q-val_violinplot.png",
@@ -134,7 +134,7 @@ rule db_store_coverage_stats_text:
         stats="results/PeptideCoverageStats.tsv",
         fasta=config['proteindb_fasta_stop_filtered']
     output:
-        "results/PeptideCoverageText.tsv"
+        "results/PeptideCoverageText.txt"
     conda: "envs/main_env.yaml"
     shell:
         "python3 src/get_peptide_stats_precomputed.py -i {input.stats} -f {input.fasta} > {output}"
@@ -165,7 +165,7 @@ rule plot_peptide_type_distribution:
     input:
         "results/PeptideListUniq.tsv"
     output:
-        "results/PeptideTypesBarCHart.png"
+        "results/PeptideTypesBarChart.png"
     shell:
         "python3 src/peptide_type_chart.py -i {input} -o {output}"
 
